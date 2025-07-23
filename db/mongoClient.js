@@ -1,7 +1,5 @@
-import { MongoClient,ObjectId } from "mongodb";
-import dotenv from 'dotenv';
+import { MongoClient } from "mongodb";
 
-dotenv.config();
 
 
 const uri = process.env.MONGODB_URI;
@@ -12,6 +10,7 @@ let riddlesCollection;
 export async function getRiddlesCollection() {
     if(!riddlesCollection){
         try{
+            console.log(uri)
             await client.connect();
             const db = client.db('riddlesdb');
             riddlesCollection = db.collection('riddles')
@@ -23,6 +22,7 @@ export async function getRiddlesCollection() {
         }
         return riddlesCollection
 }
+
   
 
-export{ObjectId}
+

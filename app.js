@@ -1,15 +1,15 @@
 import express from 'express'
-import dotenv from 'dotenv'
 import riddlesRouter from './routes/riddles.js'
 import playersRoutes from './routes/players.js';
-
-dotenv.config();
+import gameRouter from './routes/game.js'
 
 const app =express();
 app.use(express.json())
 
-app.use('/api',riddlesRouter)
-app.use('/api',playersRoutes)
+app.use('/mongo',riddlesRouter)
+app.use('/',playersRoutes)
+app.use('/game', gameRouter)
+
 
 
 
@@ -18,3 +18,4 @@ const PORT =process.env.PORT
 app.listen(PORT,()=>{
     console.log(`server listening in ${PORT}`)
 })
+
