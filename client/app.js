@@ -1,8 +1,7 @@
-import fetch from 'node-fetch';
 import promptSync from 'prompt-sync';
 const prompt = promptSync();
 
-let currentPlayer = null;
+import { loginOrRegister, solveRiddle, viewScore } from './gameFunctions.js';
 
 async function mainMenu() {
   console.log(" Welcome to the Riddle Game!");
@@ -35,30 +34,3 @@ async function mainMenu() {
 }
 
 mainMenu();
-
-async function loginOrRegister() {
-  const username = prompt("Enter your username: ").trim();
-  if (!username) return console.log("Username is required.");
-
-  try {
-    const res = await fetch(`http://localhost:3000/player/${username}`);
-    
-    if (res.ok) {
-      currentPlayer = await res.json();
-      console.log(`Welcome back, ${username}!`);
-    } else if (res.status === 404) {
-      const create = await fetch(`http://localhost:3000/player`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
-      });
-      const data = await create.json();
-      currentPlayer = data.player;
-      console.log(`Player created. Welcome, ${username}!`);
-    } else {
-      console.log("Login error.");
-    }
-  } catch (err) {
-    console.log("Network error:", err.message);
-  }
-}
