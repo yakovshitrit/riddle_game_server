@@ -1,83 +1,61 @@
 import express from 'express'
-import { ObjectId } from 'mongodb'
-import { getRiddlesCollection} from '../db/mongoClient.js'
+import {getAllRiddles,addRiddle,updateRiddle,deleteRiddle} from './service/riddleService.js';
 
 const router = express.Router()
 
-router.get('/riddles', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const collection = await getRiddlesCollection()
-    const riddles = await collection.find({}).toArray()
-    res.json(riddles)
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' })
+    const riddles = await getAllRiddles();
+    res.json(riddles);
+  }catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/',async(req,res)=>{
+  try{
+    const{question,answer,level} = req.body
+    if(!question||!answer||!level){
+      return res.status(400).json({error:"missing requires fields"})
+    }
+    const id = await addRiddle({question,answer,level})
+    res.status(201).json({id})
+  }catch(err){
+    console.error(err)
+    res.status(500).json({error:'internal server error'})
   }
 })
 
-router.post('/riddle', async (req, res) => {
-  try {
-    const { question, answer, level } = req.body
-    if (!question || !answer || !level) {
-      return res.status(400).json({ error: 'Missing fields' })
+router.put('/:id',async(req,res)=>{
+  try{
+    const {id} = req.params;
+    const fields = req.body;
+    const result = await updateRiddle(id,fields)
+    if(result.matchedCount === 0){
+        return res.status(404).json({ error: 'Riddle not found' });
     }
-    const collection = await getRiddlesCollection()
-    const result = await collection.insertOne({ question, answer, level })
-    res.status(201).json({ message: 'Riddle added', id: result.insertedId })
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' })
+      return res.json({updated:true})
+  }catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 })
 
-router.put('/riddle/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params
-    const { question, answer, level } = req.body
-    if (!question && !answer && !level) {
-      return res.status(400).json({ error: 'No fields to update' })
-    }
-    const collection = await getRiddlesCollection()
-    const updateFields = {}
-    if (question) updateFields.question = question
-    if (answer) updateFields.answer = answer
-    if (level) updateFields.level = level
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateFields }
-    )
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: 'Riddle not found' })
-    }
-    res.json({ message: 'Riddle updated' })
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-router.delete('/riddle/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    const collection = await getRiddlesCollection()
-    const result = await collection.deleteOne({ _id: new ObjectId(id) })
+    const { id } = req.params;
+    const result = await deleteRiddle(id);
     if (result.deletedCount === 0) {
-      return res.status(404).json({ error: 'Riddle not found' })
+      return res.status(404).json({ error: 'Riddle not found' });
     }
-    res.json({ message: 'Riddle deleted' })
+    res.json({ deleted: true });
   } catch (err) {
-    res.status(500).json({ error: 'Internal server error' })
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-})
+});
 
-router.get('/riddle/random', async (req, res) => {
-  try {
-    const collection = await getRiddlesCollection()
-    const result = await collection.aggregate([{ $sample: { size: 1 } }]).toArray()
-    if (result.length === 0) {
-      return res.status(404).json({ error: 'No riddles found' })
-    }
-    res.json(result[0])
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
+
 
 export default router
