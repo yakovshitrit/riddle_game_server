@@ -6,8 +6,8 @@ import gameRouter from './routes/game.js'
 const app =express();
 app.use(express.json())
 
-app.use('/mongo',riddlesRouter)
-app.use('/',playersRoutes)
+app.use('/riddle',riddlesRouter)
+app.use('/player',playersRoutes)
 app.use('/game', gameRouter)
 
 
